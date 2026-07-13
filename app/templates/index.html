@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+  <div class="lg:col-span-2 space-y-8">
+    <div class="bg-gray-800/50 border border-gray-700 rounded-xl p-6 shadow-lg">
+      <h2 class="text-lg font-bold text-white mb-4" style="font-family: 'Share Tech Mono', monospace;">Screen a Name</h2>
+      <div id="screen-form">
+        <div>
+          <label class="block text-sm font-medium text-gray-300 mb-1">Entity Name</label>
+          <input type="text" id="screen-name"
+                 placeholder="e.g. Vladimir Putin, North Korea Trading Co..."
+                 class="w-full bg-gray-900 border border-gray-600 rounded-lg px-4 py-2.5 text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition">
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-300 mb-1">ID Type (optional)</label>
+            <input type="text" id="screen-id-type" placeholder="e.g. passport, email"
+                   class="w-full bg-gray-900 border border-gray-600 rounded-lg px-4 py-2.5 text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-300 mb-1">ID Value (optional)</label>
+            <input type="text" id="screen-id-value" placeholder="e.g. AB123456"
+                   class="w-full bg-gray-900 border border-gray-600 rounded-lg px-4 py-2.5 text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-300 mb-1">Entity Type (optional)</label>
+            <select id="screen-entity-type"
+                    class="w-full bg-gray-900 border border-gray-600 rounded-lg px-4 py-2.5 text-sm text-gray-100 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition">
+              <option value="">Any type</option>
+              <option value="Person">Person</option>
+              <option value="Company">Company</option>
+              <option value="Organization">Organization</option>
+              <option value="Vessel">Vessel</option>
+              <option value="LegalEntity">Legal Entity</option>
+            </select>
+          </div>
+        </div>
+        <button hx-post="/screen"
+                hx-target="#screen-result"
+                hx-indicator="#screen-spinner"
+                hx-vals='js:{name: document.getElementById("screen-name").value, id_type: document.getElementById("screen-id-type").value, id_value: document.getElementById("screen-id-value").value, entity_type: document.getElementById("screen-entity-type").value}'
+                class="mt-4 bg-cyan-700 hover:bg-cyan-600 text-white font-semibold py-2.5 px-6 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:ring-offset-2 focus:ring-offset-gray-800 text-sm">
+          <span id="screen-spinner" class="htmx-indicator">
+            <svg class="animate-spin h-4 w-4 text-white inline mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+            Screening...
+          </span>
+          <span class="htmx-default">Screen Now</span>
+        </button>
+      </div>
+    </div>
+
+    <div id="screen-result"></div>
+  </div>
+
+  <div class="space-y-4">
+    <h2 class="text-lg font-bold text-white mb-4" style="font-family: 'Share Tech Mono', monospace;">Navigation</h2>
+
+    <a href="/cases"
+       class="block bg-gray-800/50 border border-gray-700 rounded-xl p-5 hover:bg-gray-700/50 hover:border-cyan-700/50 transition-all shadow-lg group">
+      <div class="flex items-center gap-3">
+        <div class="text-2xl">📋</div>
+        <div>
+          <h3 class="text-white font-semibold group-hover:text-cyan-400 transition-colors">Cases</h3>
+          <p class="text-xs text-gray-500 mt-0.5">Review and resolve open cases</p>
+        </div>
+      </div>
+    </a>
+
+    <a href="/dashboard"
+       class="block bg-gray-800/50 border border-gray-700 rounded-xl p-5 hover:bg-gray-700/50 hover:border-cyan-700/50 transition-all shadow-lg group">
+      <div class="flex items-center gap-3">
+        <div class="text-2xl">📊</div>
+        <div>
+          <h3 class="text-white font-semibold group-hover:text-cyan-400 transition-colors">Dashboard</h3>
+          <p class="text-xs text-gray-500 mt-0.5">Stats and case trends</p>
+        </div>
+      </div>
+    </a>
+
+    <a href="/batch"
+       class="block bg-gray-800/50 border border-gray-700 rounded-xl p-5 hover:bg-gray-700/50 hover:border-cyan-700/50 transition-all shadow-lg group">
+      <div class="flex items-center gap-3">
+        <div class="text-2xl">📁</div>
+        <div>
+          <h3 class="text-white font-semibold group-hover:text-cyan-400 transition-colors">Batch Screening</h3>
+          <p class="text-xs text-gray-500 mt-0.5">Upload CSV or JSON files</p>
+        </div>
+      </div>
+    </a>
+
+    <a href="/query"
+       class="block bg-gray-800/50 border border-gray-700 rounded-xl p-5 hover:bg-gray-700/50 hover:border-cyan-700/50 transition-all shadow-lg group">
+      <div class="flex items-center gap-3">
+        <div class="text-2xl">🔍</div>
+        <div>
+          <h3 class="text-white font-semibold group-hover:text-cyan-400 transition-colors">Natural Language Query</h3>
+          <p class="text-xs text-gray-500 mt-0.5">Ask questions in plain English</p>
+        </div>
+      </div>
+    </a>
+  </div>
+</div>
+{% endblock %}

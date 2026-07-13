@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="max-w-5xl mx-auto">
+  <h1 class="text-2xl font-bold text-cyan-400 mb-6" style="font-family: 'Share Tech Mono', monospace;">BATCH SCREENING</h1>
+
+  <div class="rounded-xl border border-gray-700 bg-gray-800/50 p-6 mb-8">
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
+      <div>
+        <label class="block text-sm font-medium text-gray-300 mb-1">Entries to generate</label>
+        <input type="number" id="batch-count" value="5" min="1" max="50"
+               class="w-full bg-gray-900 border border-gray-600 rounded-lg px-4 py-2.5 text-sm text-gray-100 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition">
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-300 mb-1">Mode</label>
+        <div class="flex gap-4">
+          <label class="flex items-center gap-2 text-sm text-gray-300 cursor-pointer">
+            <input type="radio" name="ai_mode" value="standard" checked
+                   class="accent-cyan-500">
+            Standard
+          </label>
+          <label class="flex items-center gap-2 text-sm text-gray-300 cursor-pointer">
+            <input type="radio" name="ai_mode" value="ai"
+                   class="accent-cyan-500">
+            Use AI Analysis
+          </label>
+        </div>
+      </div>
+      <div>
+        <button hx-post="/batch/generate"
+                hx-target="#results"
+                hx-indicator="#batch-spinner"
+                hx-vals='js:{count: parseInt(document.getElementById("batch-count").value) || 5, use_ai: document.querySelector("input[name=ai_mode]:checked").value === "ai"}'
+                class="w-full bg-cyan-700 hover:bg-cyan-600 text-white font-semibold py-2.5 px-6 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:ring-offset-2 focus:ring-offset-gray-800 text-sm">
+          <span id="batch-spinner" class="htmx-indicator">
+            <svg class="animate-spin h-4 w-4 text-white inline mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+            Generating...
+          </span>
+          <span class="htmx-default">Generate &amp; Screen</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="rounded-xl border border-gray-700 bg-gray-800/50 p-6 mb-8">
+    <h2 class="text-lg font-bold text-white mb-4" style="font-family: 'Share Tech Mono', monospace;">Upload a File</h2>
+    <form hx-post="/batch/upload" hx-target="#results" hx-indicator="#upload-spinner" hx-encoding="multipart/form-data" class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
+      <div>
+        <label class="block text-sm font-medium text-gray-300 mb-1">CSV or JSON file</label>
+        <input type="file" name="file" accept=".csv,.json"
+               class="w-full bg-gray-900 border border-gray-600 rounded-lg px-4 py-2.5 text-sm text-gray-100 file:mr-3 file:rounded file:border-0 file:bg-cyan-700 file:text-white file:px-3 file:py-1 file:text-xs focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition">
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-300 mb-1">Mode</label>
+        <div class="flex gap-4">
+          <label class="flex items-center gap-2 text-sm text-gray-300 cursor-pointer">
+            <input type="radio" name="use_ai" value="false" checked class="accent-cyan-500">
+            Standard
+          </label>
+          <label class="flex items-center gap-2 text-sm text-gray-300 cursor-pointer">
+            <input type="radio" name="use_ai" value="true" class="accent-cyan-500">
+            Use AI Analysis
+          </label>
+        </div>
+      </div>
+      <div>
+        <button type="submit"
+                class="w-full bg-cyan-700 hover:bg-cyan-600 text-white font-semibold py-2.5 px-6 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:ring-offset-2 focus:ring-offset-gray-800 text-sm">
+          <span id="upload-spinner" class="htmx-indicator">
+            <svg class="animate-spin h-4 w-4 text-white inline mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+            Uploading...
+          </span>
+          <span class="htmx-default">Upload &amp; Screen</span>
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <div id="results"></div>
+</div>
+{% endblock %}

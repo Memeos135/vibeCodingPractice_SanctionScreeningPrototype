@@ -1,0 +1,106 @@
+<div class="space-y-4">
+  <div class="flex gap-2">
+    <a href="#" onclick="downloadCSV(event)"
+       class="rounded-lg bg-green-700 px-4 py-2 text-sm text-white hover:bg-green-600 transition-colors">
+      Download Results as CSV
+    </a>
+  </div>
+
+  <div class="overflow-x-auto rounded-xl border border-gray-700 bg-gray-800/50">
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="border-b border-gray-700 bg-gray-800 text-left">
+          <th class="px-4 py-3 text-gray-400 font-medium">#</th>
+          <th class="px-4 py-3 text-gray-400 font-medium">Name</th>
+          <th class="px-4 py-3 text-gray-400 font-medium">Status</th>
+          <th class="px-4 py-3 text-gray-400 font-medium">Matches</th>
+          {% if use_ai %}
+          <th class="px-4 py-3 text-gray-400 font-medium">AI</th>
+          {% endif %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in results %}
+        <tr class="border-b border-gray-700/50 hover:bg-gray-700/30">
+          <td class="px-4 py-3 text-gray-400">{{ r.row }}</td>
+          <td class="px-4 py-3 font-medium">{{ r.name }}</td>
+          <td class="px-4 py-3">
+            {% if r.status == "clear" %}
+            <span class="rounded-full bg-green-900/50 px-3 py-1 text-xs text-green-400 border border-green-700">Clear</span>
+            {% elif r.status == "fuzzy" %}
+            <span class="rounded-full bg-yellow-900/50 px-3 py-1 text-xs text-yellow-400 border border-yellow-700">Fuzzy</span>
+            {% else %}
+            <span class="rounded-full bg-red-900/50 px-3 py-1 text-xs text-red-400 border border-red-700">Error</span>
+            {% endif %}
+          </td>
+          <td class="px-4 py-3">
+            {% if r.match_count > 0 %}
+            <span class="text-yellow-400">{{ r.match_count }}</span>
+            <button onclick="toggleMatches({{ r.row }})" class="ml-2 text-xs text-cyan-400 hover:text-cyan-300">show</button>
+            <div id="matches-{{ r.row }}" class="hidden mt-2 space-y-1">
+              {% for m in r.matches %}
+              <div class="text-xs text-gray-400 bg-gray-900/50 rounded px-2 py-1">
+                {{ m.caption }} <span class="text-yellow-500">({{ m.score|int }}%)</span>
+              </div>
+              {% endfor %}
+            </div>
+            {% else %}
+            <span class="text-gray-500">—</span>
+            {% endif %}
+          </td>
+          {% if use_ai %}
+          <td class="px-4 py-3">
+            {% if r.ai_analysis %}
+              {% if r.ai_analysis.error %}
+              <span class="text-red-400">AI error: {{ r.ai_analysis.error }}</span>
+              {% else %}
+              <div class="flex flex-wrap gap-1">
+                {% set rec = r.ai_analysis.get("recommendation", "") %}
+                {% if rec == "block" %}
+                <span class="text-xs rounded-full bg-red-900/50 px-2 py-0.5 text-red-300 border border-red-700">Block</span>
+                {% elif rec == "review" %}
+                <span class="text-xs rounded-full bg-yellow-900/50 px-2 py-0.5 text-yellow-300 border border-yellow-700">Review</span>
+                {% elif rec == "clear" %}
+                <span class="text-xs rounded-full bg-green-900/50 px-2 py-0.5 text-green-300 border border-green-700">Clear</span>
+                {% endif %}
+                <span class="text-xs text-cyan-400">{{ r.ai_analysis.get("risk_level", "") }}</span>
+                <span class="text-xs text-gray-400">{{ r.ai_analysis.get("confidence", "") }}</span>
+              </div>
+              {% endif %}
+            {% else %}
+            <span class="text-gray-500">—</span>
+            {% endif %}
+          </td>
+          {% endif %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="flex gap-2">
+    <span class="text-xs text-gray-500">{{ results|length }} row(s) processed</span>
+  </div>
+</div>
+
+<script>
+function toggleMatches(row) {
+  var el = document.getElementById('matches-' + row);
+  if (el) el.classList.toggle('hidden');
+}
+
+function downloadCSV(event) {
+  event.preventDefault();
+  var rows = ['Row,Name,Status,Match Count'];
+  {% for r in results %}
+  rows.push('{{ r.row }},"{{ r.name }}",{{ r.status }},{{ r.match_count }}');
+  {% endfor %}
+  var blob = new Blob([rows.join('\n')], { type: 'text/csv' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = 'batch_results.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+</script>

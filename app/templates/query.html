@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="max-w-4xl mx-auto">
+  <h1 class="text-2xl font-semibold text-cyan-400 mb-6" style="font-family: 'Share Tech Mono', monospace;">NATURAL LANGUAGE QUERY</h1>
+  <p class="text-gray-400 mb-4">Ask a question about the sanctions database in plain English.</p>
+
+  <div class="flex gap-2 mb-6">
+    <input
+      type="text"
+      id="question-input"
+      placeholder="e.g. Show me all Russian sanctioned entities"
+      class="flex-1 bg-gray-800 border border-gray-700 rounded px-4 py-2 text-gray-100 focus:outline-none focus:border-cyan-500"
+    />
+    <button
+      id="ask-btn"
+      class="bg-cyan-600 hover:bg-cyan-500 text-white px-6 py-2 rounded font-medium transition-colors"
+    >
+      Ask
+    </button>
+  </div>
+
+  <div id="loading" class="hidden text-gray-400 mb-4">
+    <span class="inline-block animate-pulse">Generating query...</span>
+  </div>
+
+  <div id="error-display" class="hidden mb-4 p-3 bg-red-900/50 border border-red-700 rounded text-red-300"></div>
+
+  <div id="sql-display" class="hidden mb-6">
+    <h2 class="text-sm font-semibold text-gray-500 mb-1 uppercase tracking-wider">Generated SQL</h2>
+    <pre id="sql-text" class="bg-gray-800 border border-gray-700 rounded p-3 text-gray-500 text-sm overflow-x-auto" style="font-family: 'Share Tech Mono', monospace;"></pre>
+  </div>
+
+  <div id="results-display" class="hidden">
+    <h2 class="text-sm font-semibold text-gray-500 mb-1 uppercase tracking-wider">Results</h2>
+    <div class="overflow-x-auto">
+      <table class="w-full border-collapse border border-gray-700 text-sm">
+        <thead>
+          <tr id="results-head" class="bg-gray-800"></tr>
+        </thead>
+        <tbody id="results-body"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+  const input = document.getElementById('question-input');
+  const askBtn = document.getElementById('ask-btn');
+  const loading = document.getElementById('loading');
+  const errorDisplay = document.getElementById('error-display');
+  const sqlDisplay = document.getElementById('sql-display');
+  const sqlText = document.getElementById('sql-text');
+  const resultsDisplay = document.getElementById('results-display');
+  const resultsHead = document.getElementById('results-head');
+  const resultsBody = document.getElementById('results-body');
+
+  async function askQuestion() {
+    const question = input.value.trim();
+    if (!question) return;
+
+    errorDisplay.classList.add('hidden');
+    sqlDisplay.classList.add('hidden');
+    resultsDisplay.classList.add('hidden');
+    loading.classList.remove('hidden');
+    askBtn.disabled = true;
+
+    try {
+      const resp = await fetch('/api/query', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question }),
+      });
+      const data = await resp.json();
+
+      if (data.error) {
+        if (data.sql) {
+          sqlText.textContent = data.sql;
+          sqlDisplay.classList.remove('hidden');
+        }
+        errorDisplay.textContent = data.error;
+        errorDisplay.classList.remove('hidden');
+        return;
+      }
+
+      sqlText.textContent = data.sql;
+      sqlDisplay.classList.remove('hidden');
+
+      resultsHead.innerHTML = '';
+      resultsBody.innerHTML = '';
+
+      if (data.columns && data.columns.length > 0) {
+        data.columns.forEach(col => {
+          const th = document.createElement('th');
+          th.className = 'border border-gray-700 px-3 py-2 text-left text-gray-300 font-medium';
+          th.textContent = col;
+          resultsHead.appendChild(th);
+        });
+      }
+
+      if (data.rows && data.rows.length > 0) {
+        data.rows.forEach(row => {
+          const tr = document.createElement('tr');
+          tr.className = 'border-b border-gray-700 hover:bg-gray-800/50';
+          row.forEach(cell => {
+            const td = document.createElement('td');
+            td.className = 'border border-gray-700 px-3 py-2 text-gray-100';
+            td.textContent = cell !== null && cell !== undefined ? String(cell) : '';
+            tr.appendChild(td);
+          });
+          resultsBody.appendChild(tr);
+        });
+      } else {
+        const tr = document.createElement('tr');
+        const td = document.createElement('td');
+        td.className = 'border border-gray-700 px-3 py-2 text-gray-500 italic';
+        td.textContent = 'No results returned.';
+        td.colSpan = data.columns ? data.columns.length : 1;
+        tr.appendChild(td);
+        resultsBody.appendChild(tr);
+      }
+
+      resultsDisplay.classList.remove('hidden');
+    } catch (err) {
+      errorDisplay.textContent = 'Request failed: ' + err.message;
+      errorDisplay.classList.remove('hidden');
+    } finally {
+      loading.classList.add('hidden');
+      askBtn.disabled = false;
+    }
+  }
+
+  askBtn.addEventListener('click', askQuestion);
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter') askQuestion();
+  });
+</script>
+{% endblock %}

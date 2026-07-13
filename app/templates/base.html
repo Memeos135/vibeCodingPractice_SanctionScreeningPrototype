@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en" class="bg-gray-900">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sanction Screening</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', path='/style.css') }}">
+</head>
+<body class="bg-gray-900 text-gray-100 min-h-screen font-sans">
+  <nav class="border-b border-gray-700 bg-gray-800/50 backdrop-blur-sm sticky top-0 z-50">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+      <a href="/" class="text-lg font-semibold tracking-wider text-cyan-400 hover:text-cyan-300 transition-colors" style="font-family: 'Share Tech Mono', monospace;">SANCTION SCREEN</a>
+      <div class="flex gap-6 text-sm">
+        <a href="/dashboard" class="text-gray-300 hover:text-white transition-colors">Dashboard</a>
+        <a href="/" class="text-gray-300 hover:text-white transition-colors">Home</a>
+        <a href="/batch" class="text-gray-300 hover:text-white transition-colors">Batch</a>
+        <a href="/cases" class="text-gray-300 hover:text-white transition-colors">Cases</a>
+        <a href="/query" class="text-gray-300 hover:text-white transition-colors">Query</a>
+      </div>
+    </div>
+  </nav>
+  <main class="max-w-6xl mx-auto px-4 py-8">
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

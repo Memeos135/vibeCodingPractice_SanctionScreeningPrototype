@@ -1,0 +1,14 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+*.db
+*.ftm.json
+.env
+.opencode/
+server.log
+server_err.log
+.DS_Store

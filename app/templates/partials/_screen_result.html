@@ -1,0 +1,114 @@
+<div id="screen-result">
+  {% if status == "exact" and match %}
+  <div class="rounded-xl border-2 border-red-500 bg-red-900/20 overflow-hidden shadow-lg shadow-red-900/30">
+    <div class="bg-red-600/80 px-6 py-4">
+      <h2 class="text-xl font-bold text-white flex items-center gap-2" style="font-family: 'Share Tech Mono', monospace;">
+        <span>🚫</span> Exact Match — Blocked
+      </h2>
+    </div>
+    <div class="p-6">
+      <div class="bg-gray-800 border border-gray-700/70 rounded-xl p-5">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="text-lg font-bold text-white">{{ match.caption }}</h3>
+          <span class="px-3 py-1 rounded-full text-xs font-medium bg-red-900/60 text-red-200 border border-red-700/50">BLOCKED</span>
+        </div>
+        <div class="flex flex-wrap gap-2 mb-3">
+          <span class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-700 text-gray-300 border border-gray-600">{{ match.schema_type }}</span>
+          {% if match.country %}
+          <span class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-900/60 text-blue-200 border border-blue-700/50">{{ match.country | upper }}</span>
+          {% endif %}
+          {% if match.program %}
+          <span class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-900/60 text-purple-200 border border-purple-700/50">{{ match.program }}</span>
+          {% endif %}
+        </div>
+        {% if match.referent %}
+        <p class="text-xs text-gray-500" style="font-family: 'Share Tech Mono', monospace;">Matched on: {{ match.referent }}</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  {% elif status == "fuzzy" and matches %}
+  <div class="rounded-xl border-2 border-yellow-500 bg-yellow-900/20 overflow-hidden shadow-lg shadow-yellow-900/30">
+    <div class="bg-yellow-600/80 px-6 py-4">
+      <h2 class="text-xl font-bold text-white flex items-center gap-2" style="font-family: 'Share Tech Mono', monospace;">
+        <span>⚠️</span> Potential Matches — Investigation Required
+      </h2>
+    </div>
+    <div class="p-6 space-y-4">
+      {% for match in matches %}
+      <div class="bg-gray-800 border border-gray-700/70 rounded-xl p-5">
+        <div class="flex flex-col lg:flex-row lg:items-start gap-4">
+          <div class="flex-1 space-y-3 min-w-0">
+            <div>
+              <h3 class="text-lg font-bold text-white truncate">{{ match.matched_name or match.caption }}</h3>
+              <p class="text-xs text-gray-500 mt-0.5 truncate" style="font-family: 'Share Tech Mono', monospace;">{{ match.sanction_id }}</p>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              <span class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-700 text-gray-300 border border-gray-600">{{ match.schema_type }}</span>
+              {% if match.country %}
+              <span class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-900/60 text-blue-200 border border-blue-700/50">{{ match.country | upper }}</span>
+              {% endif %}
+              {% if match.program %}
+              <span class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-900/60 text-purple-200 border border-purple-700/50">{{ match.program }}</span>
+              {% endif %}
+            </div>
+          </div>
+          <div class="flex-shrink-0 text-center">
+            {% set sc = match.score %}
+            {% set score_color = "text-green-400" if sc >= 90 else ("text-yellow-400" if sc >= 70 else "text-red-400") %}
+            <div class="text-4xl font-bold {{ score_color }}" style="font-family: 'Share Tech Mono', monospace;">{{ "%.0f" | format(sc) }}</div>
+            <div class="text-xs text-gray-500 mt-0.5">match score</div>
+          </div>
+        </div>
+        {% if match.scores %}
+        <div class="mt-4 pt-4 border-t border-gray-700/50">
+          <div class="text-xs text-gray-400 uppercase tracking-wide mb-2">Score Breakdown</div>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {% for key, value in match.scores.items() %}
+            <div>
+              <div class="text-xs text-gray-500 mb-1">{{ key | replace('_', ' ') | title }}</div>
+              <div class="h-2 bg-gray-700 rounded-full overflow-hidden">
+                {% set bar_color = "bg-green-500" if value >= 90 else ("bg-yellow-500" if value >= 70 else "bg-red-500") %}
+                <div class="h-full rounded-full {{ bar_color }}" style="width: {{ value }}%"></div>
+              </div>
+              <div class="text-xs {{ score_color }} mt-0.5" style="font-family: 'Share Tech Mono', monospace;">{{ "%.1f" | format(value) }}</div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+        <div class="mt-4 pt-4 border-t border-gray-700/50 flex flex-wrap gap-3">
+          <button hx-post="/resolve"
+                  hx-vals='{{ {"case_id": case_id, "match_id": match.sanction_id, "decision": "approve"} | tojson }}'
+                  hx-target="closest #screen-result"
+                  hx-swap="outerHTML"
+                  class="flex-1 min-w-[120px] bg-green-700 hover:bg-green-600 text-white text-sm font-semibold py-2.5 px-4 rounded-lg transition-colors">
+            ✓ Confirm Match
+          </button>
+          <button hx-post="/resolve"
+                  hx-vals='{{ {"case_id": case_id, "match_id": match.sanction_id, "decision": "reject"} | tojson }}'
+                  hx-target="closest #screen-result"
+                  hx-swap="outerHTML"
+                  class="flex-1 min-w-[120px] bg-red-700 hover:bg-red-600 text-white text-sm font-semibold py-2.5 px-4 rounded-lg transition-colors">
+            ✕ Not a Match
+          </button>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  {% elif status == "clear" %}
+  <div class="rounded-xl border-2 border-green-500 bg-green-900/20 overflow-hidden shadow-lg shadow-green-900/30">
+    <div class="bg-green-600/80 px-6 py-4">
+      <h2 class="text-xl font-bold text-white flex items-center gap-2" style="font-family: 'Share Tech Mono', monospace;">
+        <span>✅</span> Clear — No Match
+      </h2>
+    </div>
+    <div class="p-6">
+      <p class="text-gray-300">The screened name did not match any entries on the sanction list.</p>
+    </div>
+  </div>
+  {% endif %}
+</div>

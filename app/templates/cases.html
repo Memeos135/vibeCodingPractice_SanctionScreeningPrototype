@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="max-w-5xl mx-auto">
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+    <h1 class="text-3xl font-bold tracking-tight" style="font-family: 'Share Tech Mono', monospace;">Case History</h1>
+    <div class="flex gap-3">
+      <input type="text" id="search-input" placeholder="Search by name..."
+             class="w-full sm:w-64 bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition"
+             oninput="filterCases()">
+      <select id="status-filter" onchange="filterCases()"
+              class="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-100 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition">
+        <option value="">All Statuses</option>
+        <option value="open">Open</option>
+        <option value="blocked">Blocked</option>
+        <option value="cleared">Cleared</option>
+      </select>
+    </div>
+  </div>
+
+  {% if cases and cases | length > 0 %}
+  <div class="bg-gray-800/50 border border-gray-700 rounded-xl overflow-hidden shadow-lg">
+    <table class="w-full">
+      <thead>
+        <tr class="border-b border-gray-700 bg-gray-800/80">
+          <th class="text-left py-3 px-4 text-xs font-medium text-gray-400 uppercase tracking-wider">Query</th>
+          <th class="text-left py-3 px-4 text-xs font-medium text-gray-400 uppercase tracking-wider">Status</th>
+          <th class="text-left py-3 px-4 text-xs font-medium text-gray-400 uppercase tracking-wider">Created</th>
+          <th class="text-left py-3 px-4 text-xs font-medium text-gray-400 uppercase tracking-wider">Resolved</th>
+          <th class="text-left py-3 px-4 text-xs font-medium text-gray-400 uppercase tracking-wider">Actions</th>
+        </tr>
+      </thead>
+      <tbody id="cases-tbody">
+        {% for case in cases %}
+          {% include "partials/_case_row.html" %}
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="text-center py-16 bg-gray-800/30 border border-gray-700/50 rounded-xl">
+    <p class="text-gray-500 text-lg">No cases yet</p>
+    <p class="text-gray-600 text-sm mt-2">Screen a name to create your first case.</p>
+  </div>
+  {% endif %}
+</div>
+
+<script>
+function filterCases() {
+  const query = document.getElementById('search-input').value.toLowerCase();
+  const status = document.getElementById('status-filter').value.toLowerCase();
+  const rows = document.querySelectorAll('#cases-tbody tr.case-row');
+  rows.forEach(function(row) {
+    const nameCell = row.querySelector('td:first-child');
+    const statusCell = row.querySelector('td:nth-child(2)');
+    if (!nameCell || !statusCell) return;
+    const nameMatch = !query || nameCell.textContent.toLowerCase().includes(query);
+    const statusMatch = !status || statusCell.textContent.trim().toLowerCase() === status;
+    const visible = nameMatch && statusMatch;
+    row.style.display = visible ? '' : 'none';
+    const detailRow = document.querySelector('tr.case-detail-row[data-case-id="' + row.dataset.caseId + '"]');
+    if (detailRow) {
+      detailRow.style.display = visible ? detailRow.style.display : 'none';
+    }
+  });
+}
+
+document.addEventListener('click', function(e) {
+  if (e.target.closest('button')) return;
+  const row = e.target.closest('tr.case-row');
+  if (row) {
+    const caseId = row.dataset.caseId;
+    const detailRow = document.querySelector('tr.case-detail-row[data-case-id="' + caseId + '"]');
+    if (detailRow) {
+      const isHidden = detailRow.classList.contains('hidden');
+      if (isHidden) {
+        document.querySelectorAll('tr.case-detail-row').forEach(function(r) {
+          r.classList.add('hidden');
+        });
+        detailRow.classList.remove('hidden');
+      } else {
+        detailRow.classList.add('hidden');
+      }
+    }
+  }
+});
+
+document.addEventListener('click', function(e) {
+  const btn = e.target.closest('.save-notes-btn');
+  if (btn) {
+    const caseId = btn.dataset.caseId;
+    const textarea = document.querySelector('textarea.case-notes[data-case-id="' + caseId + '"]');
+    const statusEl = btn.parentElement.querySelector('.notes-status');
+    if (!textarea) return;
+    const notes = textarea.value;
+    statusEl.textContent = 'Saving...';
+    statusEl.classList.remove('text-green-400', 'text-red-400');
+    statusEl.classList.add('text-gray-400');
+    fetch('/api/cases/' + caseId, {
+      method: 'PATCH',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({notes: notes})
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data.status === 'ok') {
+        statusEl.textContent = 'Saved';
+        statusEl.classList.remove('text-gray-400', 'text-red-400');
+        statusEl.classList.add('text-green-400');
+      } else {
+        statusEl.textContent = 'Error';
+        statusEl.classList.remove('text-gray-400', 'text-green-400');
+        statusEl.classList.add('text-red-400');
+      }
+    })
+    .catch(function() {
+      statusEl.textContent = 'Error';
+      statusEl.classList.remove('text-gray-400', 'text-green-400');
+      statusEl.classList.add('text-red-400');
+    });
+  }
+});
+</script>
+{% endblock %}
