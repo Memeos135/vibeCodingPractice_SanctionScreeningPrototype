@@ -21,7 +21,7 @@ See [docs/PREREQUISITES.md](docs/PREREQUISITES.md) for full dependency breakdown
 |---|---|
 | Python 3.7+ | Tested with 3.7.4 |
 | Ollama v0.31.2+ | Required only for AI analysis and NL query |
-| `entities.ftm.json` | ~2.7 GB FollowTheMoney dataset in Downloads |
+| `entities.ftm.json` | ~2.7 GB FollowTheMoney dataset from  "https://www.opensanctions.org/datasets/default/" |
 
 ## Setup & Run
 
